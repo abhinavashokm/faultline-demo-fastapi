@@ -3,6 +3,7 @@ import os
 
 from dotenv import load_dotenv
 import faultline
+from faultline.integrations.fastapi import FaultlineFastAPIMiddleware
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
 
@@ -19,6 +20,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
+app.add_middleware(FaultlineFastAPIMiddleware)
 
 
 @app.get('/', response_class=FileResponse)
@@ -35,3 +37,9 @@ async def divide():
     except ZeroDivisionError as exc:
         faultline.capture_exception(exc)
         raise HTTPException(status_code=500, detail="cannot divide by zero")
+
+@app.get("/crash")
+async def unhandled():
+    a = 10
+    b = 0
+    return {"result": a / b}  # ZeroDivisionError, no try/except
