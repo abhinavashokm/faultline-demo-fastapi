@@ -40,6 +40,6 @@ async def divide():
 
 @app.get("/crash")
 async def unhandled():
-    a = 10
-    b = 0
-    return {"result": a / b}  # ZeroDivisionError, no try/except
+    catalog = {"widget": 29.99, "gadget": 49.99}
+    item = catalog["flux-capacitor"]  # KeyError: product not found
+    return {"item": item}
