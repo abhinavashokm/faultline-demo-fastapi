@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chaos shop</title>
+  <style>
+    :root {
+      --bg: #F6F7F9;
+      --surface: #FFFFFF;
+      --text: #1F2933;
+      --muted: #6B7785;
+      --border: #E3E7EC;
+      --accent: #2F5BEA;
+      --accent-hover: #2449bf;
+      --success: #1F8A5B;
+      --warning: #B7791F;
+      --danger: #C0392B;
+      --radius: 6px;
+      --font-system: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-system);
+      line-height: 1.5;
+      padding: 24px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      margin-bottom: 24px;
+    }
+
+    .header-info h1 {
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .header-info p {
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    .grid-layout {
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+
+    @media (max-width: 860px) {
+      .grid-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .column {
+      background-color: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+    }
+
+    .column-title {
+      font-size: 17px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .category {
+      margin-bottom: 20px;
+    }
+
+    .category:last-child {
+      margin-bottom: 0;
+    }
+
+    .category-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+
+    .trigger-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .trigger-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 14px;
+      font-size: 13px;
+      font-weight: 500;
+      border-radius: var(--radius);
+      cursor: pointer;
+      border: 1px solid transparent;
+      width: 100%;
+    }
+
+    .btn:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    .btn-primary {
+      background-color: var(--accent);
+      color: #FFFFFF;
+      border-color: var(--accent);
+    }
+
+    .btn-primary:hover {
+      background-color: var(--accent-hover);
+      border-color: var(--accent-hover);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .btn-secondary {
+      background-color: var(--surface);
+      color: var(--text);
+      border-color: var(--border);
+      width: auto;
+    }
+
+    .btn-secondary:hover {
+      background-color: var(--bg);
+    }
+
+    .font-mono {
+      font-family: var(--font-mono);
+    }
+
+    .font-system {
+      font-family: var(--font-system);
+    }
+
+    .trigger-desc {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.4;
+      padding-left: 2px;
+    }
+
+    .results-log {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .empty-state {
+      padding: 36px 16px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 14px;
+      border: 1px dashed var(--border);
+      border-radius: var(--radius);
+    }
+
+    .result-card {
+      background-color: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px;
+    }
+
+    .result-meta {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      margin-bottom: 10px;
+    }
+
+    .result-time {
+      color: var(--muted);
+    }
+
+    .result-route {
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .result-status {
+      font-weight: 600;
+    }
+
+    .result-duration {
+      color: var(--muted);
+      margin-left: auto;
+    }
+
+    .status-2xx {
+      color: var(--success);
+    }
+
+    .status-4xx {
+      color: var(--warning);
+    }
+
+    .status-5xx {
+      color: var(--danger);
+    }
+
+    .result-body {
+      background-color: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 10px 12px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text);
+      overflow-x: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="header-info">
+        <h1>Chaos shop</h1>
+        <p>Endpoints that misbehave on purpose</p>
+      </div>
+      <button type="button" id="clear-results-btn" class="btn btn-secondary" onclick="clearResults()">Clear results</button>
+    </header>
+
+    <main class="grid-layout">
+      <section class="column">
+        <h2 class="column-title">Trigger something</h2>
+
+        <!-- <div class="category">
+          <h3 class="category-title">Normal traffic</h3>
+          <div class="trigger-list">
+            <div class="trigger-item">
+              <button type="button" class="btn btn-primary font-mono" onclick="runRequest('GET', '/ok')">/ok</button>
+              <span class="trigger-desc">Returns 200</span>
+            </div>
+            <div class="trigger-item">
+              <button type="button" class="btn btn-primary font-mono" onclick="runRequest('GET', '/items/1')">/items/1</button>
+              <span class="trigger-desc">Same route, different ids</span>
+            </div>
+            <div class="trigger-item">
+              <button type="button" class="btn btn-primary font-mono" onclick="runRequest('GET', '/items/2')">/items/2</button>
+              <span class="trigger-desc">Same route, different ids</span>
+            </div>
+            <div class="trigger-item">
+              <button type="button" class="btn btn-primary font-mono" onclick="runRequest('GET', '/items/3')">/items/3</button>
+              <span class="trigger-desc">Same route, different ids</span>
+            </div>
+            <div class="trigger-item">
+              <button type="button" class="btn btn-primary font-mono" onclick="runRequest('GET', '/slow')">/slow</button>
+              <span class="trigger-desc">Takes 2 seconds</span>
+            </div>
+          </div>
+        </div> -->
+
+        <div class="category">
+          <h3 class="category-title">Errors</h3>
+          <div class="trigger-list">
+            <!-- <div class="trigger-item">
+              <button type="button" class="btn btn-primary font-mono" onclick="runRequest('GET', '/crash')">/crash</button>
+              <span class="trigger-desc">Unhandled exception, returns 500</span>
+            </div> -->
+            <div class="trigger-item">
+              <button type="button" class="btn btn-primary font-mono" onclick="runRequest('GET', '/caught')">/caught</button>
+              <span class="trigger-desc">Exception handled in code</span>
+            </div>
+            <!-- <div class="trigger-item">
+              <button type="button" class="btn btn-primary font-mono" onclick="runRequest('GET', '/message')">/message</button>
+              <span class="trigger-desc">A custom warning message</span>
+            </div>
+            <div class="trigger-item">
+              <button type="button" class="btn btn-primary font-mono" onclick="runRequest('GET', '/thread-crash')">/thread-crash</button>
+              <span class="trigger-desc">A background thread dies</span>
+            </div> -->
+          </div>
+        </div>
+<!-- 
+        <div class="category">
+          <h3 class="category-title">Privacy</h3>
+          <div class="trigger-list">
+            <div class="trigger-item">
+              <button type="button" class="btn btn-primary font-mono" onclick="runRequest('POST', '/login', { username: 'alice' })">POST /login</button>
+              <span class="trigger-desc">Fails with fake secrets in the error details; check afterwards that they are hidden in your tool</span>
+            </div>
+          </div>
+        </div> -->
+
+        <!-- <div class="category">
+          <h3 class="category-title">Stress</h3>
+          <div class="trigger-list">
+            <div class="trigger-item">
+              <button type="button" class="btn btn-primary font-mono" onclick="runRequest('GET', '/burst')">/burst</button>
+              <span class="trigger-desc">2000 reports in a loop</span>
+            </div>
+            <div class="trigger-item">
+              <button type="button" id="btn-50" class="btn btn-primary font-system" onclick="run50Requests()">Send 50 requests</button>
+              <span class="trigger-desc">50 calls to /items/{i} from the browser, one after another</span>
+            </div>
+          </div>
+        </div> -->
+      </section>
+
+      <section class="column">
+        <h2 class="column-title">Results</h2>
+        <div id="results-log" class="results-log">
+          <div id="empty-state" class="empty-state">No requests yet. Click a button on the left.</div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    function addResultCard(entry) {
+      const log = document.getElementById('results-log');
+      const empty = document.getElementById('empty-state');
+      if (empty) {
+        empty.remove();
+      }
+
+      const card = document.createElement('article');
+      card.className = 'result-card';
+
+      const meta = document.createElement('div');
+      meta.className = 'result-meta';
+
+      const timeSpan = document.createElement('span');
+      timeSpan.className = 'result-time';
+      timeSpan.textContent = entry.time;
+
+      const routeSpan = document.createElement('span');
+      routeSpan.className = 'result-route font-mono';
+      routeSpan.textContent = entry.methodRoute;
+
+      const statusSpan = document.createElement('span');
+      statusSpan.className = `result-status ${entry.statusClass}`;
+      statusSpan.textContent = entry.status;
+
+      const durationSpan = document.createElement('span');
+      durationSpan.className = 'result-duration';
+      durationSpan.textContent = entry.duration;
+
+      meta.appendChild(timeSpan);
+      meta.appendChild(routeSpan);
+      meta.appendChild(statusSpan);
+      meta.appendChild(durationSpan);
+
+      const bodyPre = document.createElement('pre');
+      bodyPre.className = 'result-body font-mono';
+      const bodyCode = document.createElement('code');
+      bodyCode.textContent = entry.body;
+      bodyPre.appendChild(bodyCode);
+
+      card.appendChild(meta);
+      card.appendChild(bodyPre);
+
+      log.prepend(card);
+    }
+
+    async function runRequest(method, url, payload) {
+      const startTime = performance.now();
+      const timeStr = new Date().toLocaleTimeString();
+      const options = { method: method };
+
+      if (payload !== undefined) {
+        options.headers = { 'Content-Type': 'application/json' };
+        options.body = JSON.stringify(payload);
+      }
+
+      try {
+        const response = await fetch(url, options);
+        const durationMs = Math.round(performance.now() - startTime);
+        const text = await response.text();
+
+        let formattedBody = text;
+        try {
+          const parsed = JSON.parse(text);
+          formattedBody = JSON.stringify(parsed, null, 2);
+        } catch {
+          formattedBody = text;
+        }
+
+        let statusClass = 'status-2xx';
+        if (response.status >= 500) {
+          statusClass = 'status-5xx';
+        } else if (response.status >= 400) {
+          statusClass = 'status-4xx';
+        }
+
+        const statusLabel = `${response.status} ${response.statusText || ''}`.trim();
+
+        addResultCard({
+          time: timeStr,
+          methodRoute: `${method} ${url}`,
+          status: statusLabel,
+          statusClass: statusClass,
+          duration: `${durationMs} ms`,
+          body: formattedBody
+        });
+      } catch (err) {
+        const durationMs = Math.round(performance.now() - startTime);
+        addResultCard({
+          time: timeStr,
+          methodRoute: `${method} ${url}`,
+          status: 'Connection error',
+          statusClass: 'status-5xx',
+          duration: `${durationMs} ms`,
+          body: 'Cannot reach the server. Is `uvicorn` running on port 8000?'
+        });
+      }
+    }
+
+    async function run50Requests() {
+      const btn = document.getElementById('btn-50');
+      if (btn) btn.disabled = true;
+
+      const startTime = performance.now();
+      let succeeded = 0;
+      let failed = 0;
+
+      for (let i = 1; i <= 50; i++) {
+        try {
+          const res = await fetch(`/items/${i}`);
+          if (res.ok) {
+            succeeded++;
+          } else {
+            failed++;
+          }
+        } catch {
+          failed++;
+        }
+      }
+
+      const totalMs = Math.round(performance.now() - startTime);
+      if (btn) btn.disabled = false;
+
+      const summary = {
+        total: 50,
+        succeeded: succeeded,
+        failed: failed,
+        total_time_ms: totalMs
+      };
+
+      addResultCard({
+        time: new Date().toLocaleTimeString(),
+        methodRoute: 'GET /items/1..50',
+        status: `${succeeded} of 50 succeeded`,
+        statusClass: succeeded === 50 ? 'status-2xx' : 'status-4xx',
+        duration: `${totalMs} ms`,
+        body: JSON.stringify(summary, null, 2)
+      });
+    }
+
+    function clearResults() {
+      const log = document.getElementById('results-log');
+      log.innerHTML = '<div id="empty-state" class="empty-state">No requests yet. Click a button on the left.</div>';
+    }
+  </script>
+</body>
+</html>
