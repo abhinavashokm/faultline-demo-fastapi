@@ -163,6 +163,32 @@
       background-color: var(--bg);
     }
 
+    .btn-secondary:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .btn-spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      margin-right: 8px;
+      border: 2px solid currentColor;
+      border-right-color: transparent;
+      border-radius: 50%;
+      animation: btn-spin 0.6s linear infinite;
+      vertical-align: middle;
+    }
+
+    @keyframes btn-spin {
+      from {
+        transform: rotate(0deg);
+      }
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
     .font-mono {
       font-family: var(--font-mono);
     }
@@ -364,11 +390,11 @@
           <h3 class="category-title">Errors</h3>
           <div class="trigger-list">
             <div class="trigger-item">
-              <button type="button" class="btn btn-primary font-mono" onclick="runRequest('GET', '/crash')">/crash</button>
+              <button type="button" class="btn btn-primary font-mono" onclick="runRequest('GET', '/crash', undefined, this)">/crash</button>
               <span class="trigger-desc">Unhandled exception, returns 500</span>
             </div>
             <div class="trigger-item">
-              <button type="button" class="btn btn-primary font-mono" onclick="runRequest('GET', '/caught')">/caught</button>
+              <button type="button" class="btn btn-primary font-mono" onclick="runRequest('GET', '/caught', undefined, this)">/caught</button>
               <span class="trigger-desc">Exception handled in code</span>
             </div>
           </div>
@@ -378,27 +404,27 @@
           <h3 class="category-title">Performance</h3>
           <div class="trigger-list">
             <div class="trigger-item">
-              <button type="button" class="btn btn-primary font-mono" onclick="runRequest('GET', '/fast')">/fast</button>
+              <button type="button" class="btn btn-primary font-mono" onclick="runRequest('GET', '/fast', undefined, this)">/fast</button>
               <span class="trigger-desc">Immediate response (baseline latency)</span>
             </div>
             <div class="trigger-item">
-              <button type="button" class="btn btn-primary font-mono" onclick="runRequest('GET', '/slow')">/slow</button>
+              <button type="button" class="btn btn-primary font-mono" onclick="runRequest('GET', '/slow', undefined, this)">/slow</button>
               <span class="trigger-desc">Async sleep for 2 seconds</span>
             </div>
             <div class="trigger-item">
-              <button type="button" class="btn btn-primary font-mono" onclick="runRequest('GET', '/variable')">/variable</button>
+              <button type="button" class="btn btn-primary font-mono" onclick="runRequest('GET', '/variable', undefined, this)">/variable</button>
               <span class="trigger-desc">Async sleep 0.05s &ndash; 1.5s</span>
             </div>
             <div class="trigger-item">
-              <button type="button" class="btn btn-primary font-mono" onclick="runRequest('GET', '/cpu')">/cpu</button>
+              <button type="button" class="btn btn-primary font-mono" onclick="runRequest('GET', '/cpu', undefined, this)">/cpu</button>
               <span class="trigger-desc">CPU-bound loop (sum of squares 5M numbers)</span>
             </div>
             <div class="trigger-item">
-              <button type="button" class="btn btn-primary font-mono" onclick="runRandomItemRequest()">/items/{item_id}</button>
+              <button type="button" class="btn btn-primary font-mono" onclick="runRandomItemRequest(this)">/items/{item_id}</button>
               <span class="trigger-desc">Route grouping test (sleeps 0.01s &ndash; 0.2s)</span>
             </div>
             <div class="trigger-item">
-              <button type="button" class="btn btn-primary font-mono" onclick="runRequest('GET', '/flaky')">/flaky</button>
+              <button type="button" class="btn btn-primary font-mono" onclick="runRequest('GET', '/flaky', undefined, this)">/flaky</button>
               <span class="trigger-desc">Sleeps 0.1s &ndash; 0.5s, raises 500 ~30% of the time</span>
             </div>
           </div>
@@ -430,7 +456,7 @@
                 <input type="number" id="load-concurrency" class="form-input" value="5" min="1" max="50">
               </div>
             </div>
-            <button type="button" id="btn-run-load" class="btn btn-primary font-system" onclick="runLoadTest()">Run load</button>
+            <button type="button" id="btn-run-load" class="btn btn-primary font-system" onclick="runLoadTest(this)">Run load</button>
             <div id="load-progress-container" style="display: none;">
               <div class="progress-bar-container">
                 <div id="load-progress-bar" class="progress-bar-fill"></div>
@@ -497,7 +523,26 @@
       log.prepend(card);
     }
 
-    async function runRequest(method, url, payload) {
+    function setAllButtonsDisabled(disabled) {
+      const buttons = document.querySelectorAll('button');
+      buttons.forEach(btn => {
+        btn.disabled = disabled;
+      });
+    }
+
+    async function runRequest(method, url, payload, clickedBtn) {
+      const triggerBtn = clickedBtn || (window.event && window.event.currentTarget && window.event.currentTarget.tagName === 'BUTTON' ? window.event.currentTarget : null);
+      let originalHtml = '';
+
+      if (triggerBtn) {
+        originalHtml = triggerBtn.innerHTML;
+        const spinner = document.createElement('span');
+        spinner.className = 'btn-spinner';
+        triggerBtn.prepend(spinner);
+      }
+
+      setAllButtonsDisabled(true);
+
       const startTime = performance.now();
       const timeStr = new Date().toLocaleTimeString();
       const options = { method: method };
@@ -547,19 +592,24 @@
           duration: `${durationMs} ms`,
           body: 'Cannot reach the server. Is `uvicorn` running on port 8000?'
         });
+      } finally {
+        if (triggerBtn) {
+          triggerBtn.innerHTML = originalHtml;
+        }
+        setAllButtonsDisabled(false);
       }
     }
 
-    function runRandomItemRequest() {
+    function runRandomItemRequest(clickedBtn) {
       const randomId = Math.floor(Math.random() * 1000) + 1;
-      return runRequest('GET', `/items/${randomId}`);
+      return runRequest('GET', `/items/${randomId}`, undefined, clickedBtn);
     }
 
-    async function runLoadTest() {
+    async function runLoadTest(clickedBtn) {
       const endpoint = document.getElementById('load-endpoint').value;
       const countInput = document.getElementById('load-count');
       const concurrencyInput = document.getElementById('load-concurrency');
-      const btn = document.getElementById('btn-run-load');
+      const btn = clickedBtn || document.getElementById('btn-run-load');
       const progressContainer = document.getElementById('load-progress-container');
       const progressBar = document.getElementById('load-progress-bar');
       const progressStatus = document.getElementById('load-progress-status');
@@ -567,7 +617,15 @@
       const totalRequests = Math.max(1, parseInt(countInput.value, 10) || 50);
       const concurrency = Math.max(1, Math.min(totalRequests, parseInt(concurrencyInput.value, 10) || 5));
 
-      btn.disabled = true;
+      let originalHtml = '';
+      if (btn) {
+        originalHtml = btn.innerHTML;
+        const spinner = document.createElement('span');
+        spinner.className = 'btn-spinner';
+        btn.prepend(spinner);
+      }
+      setAllButtonsDisabled(true);
+
       progressContainer.style.display = 'block';
       progressBar.style.width = '0%';
       progressStatus.textContent = `0 / ${totalRequests} completed`;
@@ -613,15 +671,21 @@
         }
       }
 
-      // Launch worker pool
-      const workers = [];
-      for (let i = 0; i < concurrency; i++) {
-        workers.push(worker());
+      try {
+        // Launch worker pool
+        const workers = [];
+        for (let i = 0; i < concurrency; i++) {
+          workers.push(worker());
+        }
+        await Promise.all(workers);
+      } finally {
+        if (btn) {
+          btn.innerHTML = originalHtml;
+        }
+        setAllButtonsDisabled(false);
       }
-      await Promise.all(workers);
 
       const totalWallTimeMs = Math.round(performance.now() - startTime);
-      btn.disabled = false;
 
       const minLatency = latencies.length ? Math.round(Math.min(...latencies)) : 0;
       const maxLatency = latencies.length ? Math.round(Math.max(...latencies)) : 0;
