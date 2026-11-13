@@ -252,6 +252,64 @@
       word-break: break-all;
     }
 
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-bottom: 10px;
+    }
+
+    .form-label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--muted);
+    }
+
+    .form-input, .form-select {
+      width: 100%;
+      padding: 7px 10px;
+      font-size: 13px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background-color: var(--surface);
+      color: var(--text);
+      font-family: var(--font-system);
+    }
+
+    .form-input:focus, .form-select:focus {
+      outline: 2px solid var(--accent);
+      outline-offset: 1px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .progress-bar-container {
+      width: 100%;
+      height: 6px;
+      background-color: var(--border);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-top: 8px;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      width: 0%;
+      background-color: var(--accent);
+      transition: width 0.1s linear;
+    }
+
+    .progress-status {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 4px;
+      text-align: right;
+    }
+
     @media (prefers-reduced-motion: reduce) {
       * {
         animation-duration: 0.01ms !important;
@@ -313,40 +371,74 @@
               <button type="button" class="btn btn-primary font-mono" onclick="runRequest('GET', '/caught')">/caught</button>
               <span class="trigger-desc">Exception handled in code</span>
             </div>
-            <!-- <div class="trigger-item">
-              <button type="button" class="btn btn-primary font-mono" onclick="runRequest('GET', '/message')">/message</button>
-              <span class="trigger-desc">A custom warning message</span>
-            </div>
-            <div class="trigger-item">
-              <button type="button" class="btn btn-primary font-mono" onclick="runRequest('GET', '/thread-crash')">/thread-crash</button>
-              <span class="trigger-desc">A background thread dies</span>
-            </div> -->
           </div>
         </div>
-<!-- 
-        <div class="category">
-          <h3 class="category-title">Privacy</h3>
-          <div class="trigger-list">
-            <div class="trigger-item">
-              <button type="button" class="btn btn-primary font-mono" onclick="runRequest('POST', '/login', { username: 'alice' })">POST /login</button>
-              <span class="trigger-desc">Fails with fake secrets in the error details; check afterwards that they are hidden in your tool</span>
-            </div>
-          </div>
-        </div> -->
 
-        <!-- <div class="category">
-          <h3 class="category-title">Stress</h3>
+        <div class="category">
+          <h3 class="category-title">Performance</h3>
           <div class="trigger-list">
             <div class="trigger-item">
-              <button type="button" class="btn btn-primary font-mono" onclick="runRequest('GET', '/burst')">/burst</button>
-              <span class="trigger-desc">2000 reports in a loop</span>
+              <button type="button" class="btn btn-primary font-mono" onclick="runRequest('GET', '/fast')">/fast</button>
+              <span class="trigger-desc">Immediate response (baseline latency)</span>
             </div>
             <div class="trigger-item">
-              <button type="button" id="btn-50" class="btn btn-primary font-system" onclick="run50Requests()">Send 50 requests</button>
-              <span class="trigger-desc">50 calls to /items/{i} from the browser, one after another</span>
+              <button type="button" class="btn btn-primary font-mono" onclick="runRequest('GET', '/slow')">/slow</button>
+              <span class="trigger-desc">Async sleep for 2 seconds</span>
+            </div>
+            <div class="trigger-item">
+              <button type="button" class="btn btn-primary font-mono" onclick="runRequest('GET', '/variable')">/variable</button>
+              <span class="trigger-desc">Async sleep 0.05s &ndash; 1.5s</span>
+            </div>
+            <div class="trigger-item">
+              <button type="button" class="btn btn-primary font-mono" onclick="runRequest('GET', '/cpu')">/cpu</button>
+              <span class="trigger-desc">CPU-bound loop (sum of squares 5M numbers)</span>
+            </div>
+            <div class="trigger-item">
+              <button type="button" class="btn btn-primary font-mono" onclick="runRandomItemRequest()">/items/{item_id}</button>
+              <span class="trigger-desc">Route grouping test (sleeps 0.01s &ndash; 0.2s)</span>
+            </div>
+            <div class="trigger-item">
+              <button type="button" class="btn btn-primary font-mono" onclick="runRequest('GET', '/flaky')">/flaky</button>
+              <span class="trigger-desc">Sleeps 0.1s &ndash; 0.5s, raises 500 ~30% of the time</span>
             </div>
           </div>
-        </div> -->
+        </div>
+
+        <div class="category">
+          <h3 class="category-title">Run load</h3>
+          <div class="trigger-item">
+            <div class="form-group">
+              <label class="form-label" for="load-endpoint">Endpoint</label>
+              <select id="load-endpoint" class="form-select font-mono">
+                <option value="/fast">GET /fast</option>
+                <option value="/slow">GET /slow</option>
+                <option value="/variable">GET /variable</option>
+                <option value="/cpu">GET /cpu</option>
+                <option value="/items/{item_id}">GET /items/{item_id}</option>
+                <option value="/flaky">GET /flaky</option>
+                <option value="/caught">GET /caught</option>
+                <option value="/crash">GET /crash</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="load-count">Request count</label>
+                <input type="number" id="load-count" class="form-input" value="50" min="1" max="1000">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="load-concurrency">Concurrency</label>
+                <input type="number" id="load-concurrency" class="form-input" value="5" min="1" max="50">
+              </div>
+            </div>
+            <button type="button" id="btn-run-load" class="btn btn-primary font-system" onclick="runLoadTest()">Run load</button>
+            <div id="load-progress-container" style="display: none;">
+              <div class="progress-bar-container">
+                <div id="load-progress-bar" class="progress-bar-fill"></div>
+              </div>
+              <div id="load-progress-status" class="progress-status">0 / 50 completed</div>
+            </div>
+          </div>
+        </div>
       </section>
 
       <section class="column">
@@ -458,43 +550,103 @@
       }
     }
 
-    async function run50Requests() {
-      const btn = document.getElementById('btn-50');
-      if (btn) btn.disabled = true;
+    function runRandomItemRequest() {
+      const randomId = Math.floor(Math.random() * 1000) + 1;
+      return runRequest('GET', `/items/${randomId}`);
+    }
+
+    async function runLoadTest() {
+      const endpoint = document.getElementById('load-endpoint').value;
+      const countInput = document.getElementById('load-count');
+      const concurrencyInput = document.getElementById('load-concurrency');
+      const btn = document.getElementById('btn-run-load');
+      const progressContainer = document.getElementById('load-progress-container');
+      const progressBar = document.getElementById('load-progress-bar');
+      const progressStatus = document.getElementById('load-progress-status');
+
+      const totalRequests = Math.max(1, parseInt(countInput.value, 10) || 50);
+      const concurrency = Math.max(1, Math.min(totalRequests, parseInt(concurrencyInput.value, 10) || 5));
+
+      btn.disabled = true;
+      progressContainer.style.display = 'block';
+      progressBar.style.width = '0%';
+      progressStatus.textContent = `0 / ${totalRequests} completed`;
 
       const startTime = performance.now();
+      const latencies = [];
       let succeeded = 0;
       let failed = 0;
+      let completed = 0;
 
-      for (let i = 1; i <= 50; i++) {
-        try {
-          const res = await fetch(`/items/${i}`);
-          if (res.ok) {
-            succeeded++;
-          } else {
+      // Queue of request indices [0, 1, ..., totalRequests - 1]
+      let nextIndex = 0;
+
+      async function worker() {
+        while (nextIndex < totalRequests) {
+          const reqIndex = nextIndex++;
+          let url = endpoint;
+          if (endpoint === '/items/{item_id}') {
+            const randomId = Math.floor(Math.random() * 1000) + 1;
+            url = `/items/${randomId}`;
+          }
+
+          const reqStart = performance.now();
+          try {
+            const res = await fetch(url);
+            const reqDuration = performance.now() - reqStart;
+            latencies.push(reqDuration);
+            if (res.ok) {
+              succeeded++;
+            } else {
+              failed++;
+            }
+          } catch {
+            const reqDuration = performance.now() - reqStart;
+            latencies.push(reqDuration);
             failed++;
           }
-        } catch {
-          failed++;
+
+          completed++;
+          const percent = Math.round((completed / totalRequests) * 100);
+          progressBar.style.width = `${percent}%`;
+          progressStatus.textContent = `${completed} / ${totalRequests} completed`;
         }
       }
 
-      const totalMs = Math.round(performance.now() - startTime);
-      if (btn) btn.disabled = false;
+      // Launch worker pool
+      const workers = [];
+      for (let i = 0; i < concurrency; i++) {
+        workers.push(worker());
+      }
+      await Promise.all(workers);
+
+      const totalWallTimeMs = Math.round(performance.now() - startTime);
+      btn.disabled = false;
+
+      const minLatency = latencies.length ? Math.round(Math.min(...latencies)) : 0;
+      const maxLatency = latencies.length ? Math.round(Math.max(...latencies)) : 0;
+      const avgLatency = latencies.length ? Math.round(latencies.reduce((a, b) => a + b, 0) / latencies.length) : 0;
 
       const summary = {
-        total: 50,
+        endpoint: endpoint,
+        total_requests: totalRequests,
+        concurrency: concurrency,
         succeeded: succeeded,
         failed: failed,
-        total_time_ms: totalMs
+        total_wall_time_ms: totalWallTimeMs,
+        latency_ms: {
+          min: minLatency,
+          max: maxLatency,
+          avg: avgLatency
+        }
       };
 
       addResultCard({
         time: new Date().toLocaleTimeString(),
-        methodRoute: 'GET /items/1..50',
-        status: `${succeeded} of 50 succeeded`,
-        statusClass: succeeded === 50 ? 'status-2xx' : 'status-4xx',
-        duration: `${totalMs} ms`,
+        methodRoute: `LOAD GET ${endpoint}`,
+        status: `${succeeded} / ${totalRequests} succeeded (${failed} failed)`,
+        statusClass: failed === 0 ? 'status-2xx' : (succeeded > 0 ? 'status-4xx' : 'status-5xx'),
+        duration: `${totalWallTimeMs} ms`,
         body: JSON.stringify(summary, null, 2)
       });
     }
